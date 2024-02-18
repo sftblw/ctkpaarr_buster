@@ -97,13 +97,13 @@ suspect.image_ocr.list: ${JSON.stringify(ocr_list_values)}
         
         const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
         if (result.trim() == "5" && !friendlyFire) {
-            client.host
+            
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
-            // sadly, this cannot be done, since API moderation is blocked by firefish at the source level
-            console.log("suspending the user");
-            const endpoint = `${client.host}/api/admin/suspend-user`;
-            console.log(endpoint)
+            // sadly, suspending instance-wide (admin/suspend-user) cannot be done,
+            // since API moderation is blocked by firefish at the source level
+            console.log("blocking the user");
+            const endpoint = `${client.host}/api/blocking/create`;
             console.log(note.userId);
             try {
                 const result = await fetch(
@@ -118,7 +118,9 @@ suspect.image_ocr.list: ${JSON.stringify(ocr_list_values)}
                 );
     
                 console.log(result.status)
-                console.log(result)
+                if (result.status >= 400) {
+                    console.log(await result.json())
+                }
             } catch (ex) {
                 console.log(ex);
             }
