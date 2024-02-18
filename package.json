@@ -1,0 +1,19 @@
+{
+	"scripts": {
+		"start": "node --loader ts-node/esm src/main.mts"
+	},
+	"type": "module",
+	"dependencies": {
+		"@langchain/core": "^0.1.30",
+		"@langchain/openai": "^0.0.14",
+		"@xenova/transformers": "^2.15.0",
+		"dotenv": "^16.4.4",
+		"langchain": "^0.1.20",
+		"tesseract.js": "^5.0.4",
+		"ts-node": "^10.9.2",
+		"tsmi": "^0.4.2"
+	},
+	"devDependencies": {
+		"typescript": "^5.3.3"
+	}
+}
