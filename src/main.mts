@@ -1,3 +1,5 @@
+import * as fsp from 'fs/promises'
+
 import 'dotenv/config'
 
 import { createWorker } from 'tesseract.js';
@@ -35,12 +37,13 @@ async function call_mapi_browser_token(endpoint_chunk: string = "/blocking/creat
 }
 
 async function main() {
+    const spam_doc = await fsp.readFile("./spam_doc.txt", {encoding: "utf8"});
     console.log("[tsmi] start");
 
     const client = new Client({
         host: process.env.MISSKEY_HOST as string,
         token: process.env.MISSKEY_TOKEN as string,
-        channels: ["main", "localTimeline", "homeTimeline"],
+        channels: ["main"],
     });
 
     const myself: UserDetailed = await new Promise((resolve, reject) => {
@@ -60,10 +63,12 @@ async function main() {
     const chatModel = new ChatOpenAI({});
     
     const prompt = ChatPromptTemplate.fromMessages([
-        ["system", "You're Fediverse spam detector. Determine It's spam or not. " + 
-        "Spam has generally many mentions, random names, from unknown follower. " +
-        "Recent example includes discord.gg/ctkpaarr, it's the spam. Some friendly user is mimicking the spam for fun. don't confused by it. " +
-        "Output the score. 0 (impossible) ~ 5 (it's definitely a spam). output a single number only."],
+        ["system", "You're Fediverse spam detector. Determine It's spam or not.\n" + 
+        "Some characteristics of spams include:\n"+
+        "```\n" +
+        spam_doc +
+        "\n```\n" +
+        "Output one of these: ham, spam, spam-like-ham, ham-like-spam ."],
         ["user", "{input}"],
     ]);
 
@@ -119,10 +124,10 @@ suspect.image_ocr.list: ${JSON.stringify(ocr_list_values)}
 
         console.log(message_formatted);
         const result = await llmChain.invoke({input: message_formatted})
-        console.log(`llm says: ${result.trim()}/5`)
+        console.log(`llm says: ${result.trim()}`)
         
         const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
-        if (result.trim() == "5" && !friendlyFire) {
+        if (result.trim() == "10" && !friendlyFire) {
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
             call_mapi_browser_token("/notes/delete", "POST", {userId: note.userId});
