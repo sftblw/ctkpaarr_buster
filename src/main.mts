@@ -68,7 +68,7 @@ async function main() {
         "```\n" +
         spam_doc +
         "\n```\n" +
-        "Output one of these: ham, spam, ham-like-spam ."],
+        "Output the single number of score: 0 (not a spam) ~ 5 (definitely a spam). just number only."],
         ["user", "{input}"],
     ]);
 
@@ -127,7 +127,7 @@ suspect.image_ocr.list: ${JSON.stringify(ocr_list_values)}
         console.log(`llm says: ${result.trim()}`)
         
         const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
-        if (result.trim() == "10" && !friendlyFire) {
+        if (result.trim() == "5" && !friendlyFire) {
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
             call_mapi_browser_token("/notes/delete", "POST", {userId: note.userId});
