@@ -107,9 +107,6 @@ async function main() {
             
 
         const message_formatted = `
-me.name: ${myself.name}
-me.username: ${myself.username}
-me.host: ${myself.host}
 suspect.name ${note.user.name}
 suspect.username: ${note.user.username}
 suspect.host: ${note.user.host}
@@ -127,6 +124,7 @@ suspect.image_ocr.list: ${JSON.stringify(ocr_list_values)}
         console.log(`llm says: ${result.trim()}`)
         
         const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
+
         if (result.trim() == "5" && !friendlyFire) {
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html

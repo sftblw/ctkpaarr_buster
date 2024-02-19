@@ -1,8 +1,6 @@
-- contains https://discord.gg/ctkpaarr in link form or on the image
-- contains yellow blue spam image, with above link
-- some non-spam real users mimik them for fun
-- contains many mentions, like `@tightvnc@misskey-square.net @realuser@firefish.ranranhome.info @sftblw@lake.naru.cafe @iouser@misskey.io @cat@mstdn.jp`
-- somtimes spam only have two mentions.
-- username is strange; like `aj3lhhhvi6`, `ehygtygp6e`, `6glwapwnes`, `5vncynhebq`
+- spam often contains https://discord.gg/ctkpaarr
+- spam often contains yellow blue spam image, with above link
+- spam usually contains many mentions
+- spam username is often randomly-generated one; like `aj3lhhhvi6`, `ehygtygp6e`, `6glwapwnes`, `5vncynhebq`
 - user description is missing
 - no followers, no following
