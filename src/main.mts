@@ -107,6 +107,7 @@ async function main() {
             
 
         const message_formatted = `
+## meta info
 suspect.name ${note.user.name}
 suspect.username: ${note.user.username}
 suspect.host: ${note.user.host}
@@ -115,8 +116,10 @@ suspect.followingCount: ${noteUserDetail.followingCount}
 suspect.isFollowed: ${noteUserDetail.isFollowed}
 suspect.isFollowing: ${noteUserDetail.isFollowing}
 suspect.description.substring(0, 32): ${noteUserDetail.description?.substring(0, 32)?.replaceAll("\n", "\\n")}
-suspect.note.text: ${note.text}
-suspect.image_ocr.list: ${JSON.stringify(ocr_list_values)}
+
+## main content
+suspect.article.body_text: ${note.text}
+suspect.attachment.image_orc_list: ${JSON.stringify(ocr_list_values)}
         `.trim();
 
         console.log(message_formatted);
