@@ -8,6 +8,32 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 import { pipeline } from '@xenova/transformers';
 import { UserDetailed } from 'tsmi/dist/models/user.js';
 
+async function call_mapi_browser_token(endpoint_chunk: string = "/blocking/create", method: string = "POST", body: Record<string, string> = {}) {
+    const endpoint = `${process.env.MISSKEY_HOST}/api${endpoint_chunk}`;
+    
+    try {
+        const result = await fetch(
+            endpoint,
+            {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    "authorization": `Bearer ${process.env.MISSKEY_BEARER}`
+                },
+                body: JSON.stringify(body), // JavaScript 객체를 JSON 문자열로 변환
+            }
+        );
+
+        if (result.status >= 400) {
+            console.log(await result.json())
+        } else {
+            console.log("success: " + endpoint)
+        }
+    } catch (ex) {
+        console.log(ex);
+    }
+}
+
 async function main() {
     console.log("[tsmi] start");
 
@@ -97,34 +123,10 @@ suspect.image_ocr.list: ${JSON.stringify(ocr_list_values)}
         
         const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
         if (result.trim() == "5" && !friendlyFire) {
-            
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
-            // sadly, suspending instance-wide (admin/suspend-user) cannot be done,
-            // since API moderation is blocked by firefish at the source level
-            console.log("blocking the user");
-            const endpoint = `${client.host}/api/blocking/create`;
-            console.log(note.userId);
-            try {
-                const result = await fetch(
-                    endpoint,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({i: process.env.MISSKEY_TOKEN, userId: note.userId}), // JavaScript 객체를 JSON 문자열로 변환
-                    }
-                );
-    
-                console.log(result.status)
-                if (result.status >= 400) {
-                    console.log(await result.json())
-                }
-            } catch (ex) {
-                console.log(ex);
-            }
-
+            call_mapi_browser_token("/notes/delete", "POST", {userId: note.userId});
+            call_mapi_browser_token("/admin/suspend_user", "POST", {userId: note.userId});
         }
     });
 }
