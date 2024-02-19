@@ -68,7 +68,7 @@ async function main() {
         "```\n" +
         spam_doc +
         "\n```\n" +
-        "Output one of these: ham, spam, spam-like-ham, ham-like-spam ."],
+        "Output one of these: ham, spam, ham-like-spam ."],
         ["user", "{input}"],
     ]);
 
