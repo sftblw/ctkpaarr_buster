@@ -63,14 +63,20 @@ async function main() {
     const chatModel = new ChatOpenAI({});
     
     const prompt = ChatPromptTemplate.fromMessages([
-        ["system", "You're Fediverse spam detector. Determine It's spam or not.\n" + 
-        "Some characteristics of spams include:\n"+
-        "```\n" +
-        spam_doc +
-        "\n```\n" +
-        "Output the single number of score: 0 (not a spam) ~ 5 (definitely a spam). just number only."],
-        ["user", "{input}"],
+        ["system", `
+As a Fediverse spam detector, your role is to analyze messages and determine whether they are spam or ham based on specific characteristics. Characteristics of spam include: 
+- Containing specific URLs or phrases
+- Including certain images or patterns in attachments
+- Having many mentions
+- Featuring randomly-generated usernames
+- Missing user descriptions
+- Users having no followers or followings
+
+Given the detailed metadata and content of a suspect message below, decide whether it is "spam" or "ham" and provide your reasoning.
+    `.trim()],
+        ["user", `{input}`.trim()],
     ]);
+    
 
     const outputParser = new StringOutputParser();
     const llmChain = prompt.pipe(chatModel).pipe(outputParser);
@@ -107,20 +113,21 @@ async function main() {
             
 
         const message_formatted = `
-## meta info
-suspect.name ${note.user.name}
-suspect.username: ${note.user.username}
-suspect.host: ${note.user.host}
-suspect.followersCount: ${noteUserDetail.followersCount}
-suspect.followingCount: ${noteUserDetail.followingCount}
-suspect.isFollowed: ${noteUserDetail.isFollowed}
-suspect.isFollowing: ${noteUserDetail.isFollowing}
-suspect.description.substring(0, 32): ${noteUserDetail.description?.substring(0, 32)?.replaceAll("\n", "\\n")}
+## Meta Information
+- Suspect Name: ${note.user.name}
+- Username: ${note.user.username}
+- Host: ${note.user.host}
+- Followers Count: ${noteUserDetail.followersCount}
+- Following Count: ${noteUserDetail.followingCount}
+- Is Followed: ${noteUserDetail.isFollowed ? 'Yes' : 'No'}
+- Is Following: ${noteUserDetail.isFollowing ? 'Yes' : 'No'}
+- User Description: ${noteUserDetail.description?.substring(0, 32) ?? 'None'}
 
-## main content
-suspect.article.body_text: ${note.text}
-suspect.attachment.image_orc_list: ${JSON.stringify(ocr_list_values)}
-        `.trim();
+## Main Content
+- Body Text: ${note.text}
+- Image OCR Results: ${JSON.stringify(ocr_list_values)}
+`.trim();
+            
 
         console.log(message_formatted);
         const result = await llmChain.invoke({input: message_formatted})
@@ -128,7 +135,7 @@ suspect.attachment.image_orc_list: ${JSON.stringify(ocr_list_values)}
         
         const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
 
-        if (result.trim() == "5" && !friendlyFire) {
+        if (result.trim() == "spam" && !friendlyFire) {
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
             call_mapi_browser_token("/notes/delete", "POST", {userId: note.userId});

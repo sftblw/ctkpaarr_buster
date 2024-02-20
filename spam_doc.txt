@@ -1,6 +1,6 @@
-- spam often contains https://discord.gg/ctkpaarr
-- spam often contains yellow blue spam image, with above link
-- spam usually contains many mentions
-- spam username is often randomly-generated one; like `aj3lhhhvi6`, `ehygtygp6e`, `6glwapwnes`, `5vncynhebq`
-- user description is missing
-- no followers, no following
+- Spam often contains URLs like "https://discord.gg/", especially with specific paths such as "/ctkpaarr".
+- Spam may include images with specific color schemes, such as yellow and blue, often associated with certain links.
+- Spam messages typically contain a high number of mentions to different users.
+- Usernames in spam are usually randomly generated, with patterns like a mix of letters and numbers (e.g., "aj3lhhhvi6", "ehygtygp6e").
+- Spam accounts often have no user description provided.
+- Typical spam accounts have no followers and are not following anyone.
