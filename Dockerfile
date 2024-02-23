@@ -1,9 +1,9 @@
 # 사용할 Alpine Linux 베이스 이미지를 지정합니다.
-FROM node:20-bookworm-slim
+FROM node:21-alpine3.18
 
-RUN apt-get update && \
-    apt-get install -y libvips libc6 python3 make gcc && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk update && \
+    apk add --no-cache vips libc6-compat python3 make gcc && \
+    rm -rf /var/cache/apk/*
 
 # corepack 활성화
 RUN corepack enable pnpm
