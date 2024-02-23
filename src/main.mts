@@ -2,7 +2,7 @@ import * as fsp from 'fs/promises'
 
 import 'dotenv/config'
 
-import { createWorker } from 'tesseract.js';
+import { OEM, createWorker } from 'tesseract.js';
 import { Client, INote } from "tsmi";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
@@ -144,9 +144,9 @@ You've reasoned about this message. So, now, decide with a single word response 
             return output;
         }
     
+        const tesseract = await createWorker('eng', OEM.TESSERACT_LSTM_COMBINED, {cachePath: "model"});
         const vit_gpt2_captioner = await pipeline('image-to-text', 'Xenova/vit-gpt2-image-captioning');
         const trocr_captioner = await pipeline('image-to-text', 'Xenova/trocr-base-printed');
-        const tesseract = await createWorker('eng');
 
         return new MisskeySpamDetector(
             client,
