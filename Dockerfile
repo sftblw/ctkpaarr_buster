@@ -1,5 +1,5 @@
 # 사용할 Alpine Linux 베이스 이미지를 지정합니다.
-FROM node:21-bookworm-slim
+FROM node:20-bookworm-slim
 
 RUN apt-get update && \
     apt-get install -y libvips libc6 python3 make gcc && \
