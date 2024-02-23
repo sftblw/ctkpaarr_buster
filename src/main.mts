@@ -243,7 +243,7 @@ You've reasoned about this message. So, now, decide with a single word response 
             console.log(`(user ${userInfoString}) acting as a spam`)
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
-            call_mapi_browser_token("/notes/delete", "POST", { userId: note.userId });
+            call_mapi_browser_token("/notes/delete", "POST", { noteId: note.id });
             call_mapi_browser_token("/admin/suspend_user", "POST", { userId: note.userId });
         }
     }
