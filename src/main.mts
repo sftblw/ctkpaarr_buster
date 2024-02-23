@@ -5,11 +5,12 @@ import 'dotenv/config'
 import { createWorker } from 'tesseract.js';
 import { Client, INote } from "tsmi";
 import { ChatOpenAI } from "@langchain/openai";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { pipeline } from '@xenova/transformers';
 import { UserDetailed } from 'tsmi/dist/models/user.js';
-import { Runnable, RunnableConfig } from 'langchain/runnables';
+import { RunnableWithMessageHistory } from '@langchain/core/runnables';
+import { ChatMessageHistory } from "langchain/stores/message/in_memory";
 
 async function call_mapi_browser_token(endpoint_chunk: string = "/blocking/create", method: string = "POST", body: Record<string, any> = {}): Promise<any> {
     const endpoint = `${process.env.MISSKEY_HOST}/api${endpoint_chunk}`;
@@ -46,12 +47,12 @@ async function call_mapi_browser_token(endpoint_chunk: string = "/blocking/creat
 
 class MisskeySpamDetector {
     client: Client
-    llmChain: Runnable<any, string, RunnableConfig>
+    llmRun: (message: string) => Promise<string>;
     ocrList: Record<string, any>
 
-    constructor(client: Client, llmChain: Runnable<any, string, RunnableConfig>, ocrList: Record<string, any>) {
+    constructor(client: Client, llmRun: (message: string) => Promise<string>, ocrList: Record<string, any>) {
         this.client = client;
-        this.llmChain = llmChain;
+        this.llmRun = llmRun;
         this.ocrList = ocrList;
     }
     
@@ -78,26 +79,70 @@ class MisskeySpamDetector {
             });
         });
     
-        const chatModel = new ChatOpenAI({});
+        const chatModel = new ChatOpenAI({modelName: process.env.OPENAI_MODEL_NAME ?? 'gpt-3.5-turbo-0125'});
         
         const prompt = ChatPromptTemplate.fromMessages([
             ["system", `
-As a Fediverse spam detector, your role is to analyze messages and determine whether they are spam or ham based on specific characteristics. Characteristics of spam include: 
-- Containing specific URLs or phrases
-- Including certain images or patterns in attachments
-- Having many mentions
-- Featuring randomly-generated usernames
-- Missing user descriptions
-- Users having no followers or followings
+As a Fediverse spam detector, you're tasked with identifying spam messages. Focus on these spam indicators:
 
-Given the detailed metadata and content of a suspect message below, decide whether it is "spam" or "ham". only print "spam" or "ham" without quotes.
-        `.trim()],
-            ["user", `{input}`.trim()],
+- Use of specific URLs or phrases commonly associated with spam.
+- Attachments with certain images or recognizable spam patterns.
+- Excessive mentions of users.
+- Usernames that appear randomly generated.
+- Lack of user description.
+- Users with no followers or following any accounts.
+
+Recent spam patterns include:
+${spam_doc}
+
+User will request about a single message, in two times.
+- first: asking reasons. Your job is reasoning about whether it is spam or not.
+- second: asking result, for acting. Your job is deciding, only printing "spam" or "ham" without quote and without explanation or additional sentence. only single word.
+            `.trim()],
+            
+            new MessagesPlaceholder("history")
         ]);
-        
-    
+
+        const llmChain = prompt.pipe(chatModel);
+
+        const chainWithHistory = new RunnableWithMessageHistory({
+            runnable: llmChain,
+            getMessageHistory: (sessionIdAsObj) => sessionIdAsObj,
+            inputMessagesKey: "input",
+            historyMessagesKey: "history",
+        });
+
         const outputParser = new StringOutputParser();
-        const llmChain = prompt.pipe(chatModel).pipe(outputParser);
+
+        const llmRun = async (message: string) => {
+            const history = new ChatMessageHistory();
+            const firstRequest = `
+User got a new message. Below is the detail of the message with metadata.
+\`\`\`
+${message}
+\`\`\`
+Based on the spam indicators provided (specific URLs or phrases, images, mentions, usernames, user descriptions, followers), classify this message as "spam" or "ham". Provide concise reasons for your classification focusing on the mentioned indicators, and whether it is spam or ham.
+reasons:
+            `.trim()
+
+            const _result = await chainWithHistory.invoke(
+                {input: firstRequest},
+                {configurable: {sessionId: history}}
+            )
+
+            const secondRequest = `
+You've reasoned about this message. So, now, decide with a single word response "spam" or "ham. not a sentence. Act like a API which return either "spam" or "ham" in plain text. result [spam/ham]:
+            `.trim();            
+
+            const result2 = await chainWithHistory.invoke(
+                {input: secondRequest},
+                {configurable: {sessionId: history}}
+            );
+                
+            const output = await outputParser.invoke(result2);
+
+            return output;
+        }
     
         const vit_gpt2_captioner = await pipeline('image-to-text', 'Xenova/vit-gpt2-image-captioning');
         const trocr_captioner = await pipeline('image-to-text', 'Xenova/trocr-base-printed');
@@ -105,7 +150,7 @@ Given the detailed metadata and content of a suspect message below, decide wheth
 
         return new MisskeySpamDetector(
             client,
-            llmChain,
+            llmRun,
             {
                 "trocr": trocr_captioner,
                 "vit_gpt2": vit_gpt2_captioner,
@@ -131,9 +176,22 @@ Given the detailed metadata and content of a suspect message below, decide wheth
     }
 
     private async handleNote(note: INote) {
-        console.log(`got mention from ${note.user.name} ${note.user.username} ${note.user.host}`);
+        const userInfoString = `${note.user.name} ${note.user.username} ${note.user.host}`;
+        console.log(`got mention from ${userInfoString}`);
 
         const noteUserDetail = await this.client.user.get({ userId: note.userId });
+
+        const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
+
+        if (friendlyFire) {
+            console.log(`it is friendlyFire. skipping. user: ${userInfoString} isFollowing: ${noteUserDetail.isFollowing} isFollowed: ${noteUserDetail.isFollowed}`);
+            return;
+        }
+
+        if (noteUserDetail.isSuspended) {
+            console.log(`user is already suspended. user: ${userInfoString} isFollowing: ${noteUserDetail.isFollowing} isFollowed: ${noteUserDetail.isFollowed}`);
+            return;
+        }
 
         let ocr_list = await Promise.allSettled(note.files.map(async (file: any) => {
             let file_url: string = file.url;
@@ -147,7 +205,6 @@ Given the detailed metadata and content of a suspect message below, decide wheth
                 "vit_gpt2": vit_gpt2_caption[0]['generated_text'],
                 "tesseract": tesseract_caption.data.text
             };
-            console.log(result);
             return result;
         }));
 
@@ -171,14 +228,11 @@ Given the detailed metadata and content of a suspect message below, decide wheth
 - Image OCR Results: ${JSON.stringify(ocr_list_values)}
 `.trim();
 
-
-        console.log(message_formatted);
-        const result = await this.llmChain.invoke({ input: message_formatted });
-        console.log(`llm says: ${result.trim()}`);
-
-        const friendlyFire = noteUserDetail.isFollowing || noteUserDetail.isFollowed;
+        const result = await this.llmRun(message_formatted);
+        console.log(`(user ${userInfoString}) llm says: ${result.trim()}`);
 
         if (result.trim() == "spam" && !friendlyFire) {
+            console.log(`(user ${userInfoString}) acting as a spam`)
             // https://lake.naru.cafe/api/notes/renotes
             // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
             call_mapi_browser_token("/notes/delete", "POST", { userId: note.userId });

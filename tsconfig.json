@@ -3,5 +3,9 @@
         "target": "es2022",
         "module": "NodeNext",
         "moduleResolution": "NodeNext"
+    },
+    "ts-node": {
+        // Tell ts-node CLI to install the --loader automatically
+        "esm": true
     }
 }

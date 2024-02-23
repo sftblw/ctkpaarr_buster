@@ -1,6 +1,5 @@
-- Spam often contains URLs like "https://discord.gg/", especially with specific paths such as "/ctkpaarr".
+- contains URLs like below
+    - https://discord.gg/ctkpaarr
+    - https://ctkpaarr.org/
+    - https://荒らし.com/
 - Spam may include images with specific color schemes, such as yellow and blue, often associated with certain links.
-- Spam messages typically contain a high number of mentions to different users.
-- Usernames in spam are usually randomly generated, with patterns like a mix of letters and numbers (e.g., "aj3lhhhvi6", "ehygtygp6e").
-- Spam accounts often have no user description provided.
-- Typical spam accounts have no followers and are not following anyone.
