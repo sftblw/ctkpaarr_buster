@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./:/app
-      - ./eng.traineddata:/app/eng.traineddata
+      - ./model:/app/model
       - ./.env:/app/.env
     ports:
       - "3000:3000"

@@ -144,7 +144,7 @@ You've reasoned about this message. So, now, decide with a single word response 
             return output;
         }
     
-        const tesseract = await createWorker('eng', OEM.TESSERACT_LSTM_COMBINED, {cachePath: "model"});
+        const tesseract = await createWorker('eng', OEM.DEFAULT, {cachePath: "model"});
         const vit_gpt2_captioner = await pipeline('image-to-text', 'Xenova/vit-gpt2-image-captioning');
         const trocr_captioner = await pipeline('image-to-text', 'Xenova/trocr-base-printed');
 

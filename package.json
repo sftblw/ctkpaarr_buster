@@ -1,20 +1,22 @@
 {
 	"scripts": {
-		"start": "node --loader ts-node/esm src/main.mts"
+		"start": "node dist/main.mjs",
+		"build": "pnpm exec tsc"
 	},
 	"type": "module",
 	"dependencies": {
-		"@langchain/core": "^0.1.30",
+		"@langchain/core": "^0.1.32",
 		"@langchain/openai": "^0.0.14",
-		"@xenova/transformers": "^2.15.0",
-		"dotenv": "^16.4.4",
-		"langchain": "^0.1.20",
+		"@tsconfig/node16": "^16.1.1",
+		"@xenova/transformers": "^2.15.1",
+		"dotenv": "^16.4.5",
+		"langchain": "^0.1.21",
 		"misskey-js": "^2024.2.0",
 		"tesseract.js": "^5.0.4",
-		"ts-node": "^10.9.2",
 		"tsmi": "^0.4.2"
 	},
 	"devDependencies": {
+		"@types/node": "^20.11.20",
 		"typescript": "^5.3.3"
 	}
 }
