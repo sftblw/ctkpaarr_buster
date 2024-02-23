@@ -1,9 +1,16 @@
-# 사용할 Alpine Linux 베이스 이미지를 지정합니다.
-FROM node:21-alpine3.18
+FROM ubuntu:jammy
 
-RUN apk update && \
-    apk add --no-cache vips libc6-compat python3 make gcc && \
-    rm -rf /var/cache/apk/*
+FROM ubuntu:jammy
+
+# 패키지 목록 업데이트 및 필수 도구 설치
+RUN apt-get update && \
+    apt-get install -y curl libvips libc6 python3 make gcc && \
+    # NodeSource 저장소 설정 및 Node.js 설치
+    curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && \
+    apt-get install -y nodejs && \
+    # 캐시 제거
+    rm -rf /var/lib/apt/lists/*
+
 
 # corepack 활성화
 RUN corepack enable pnpm
