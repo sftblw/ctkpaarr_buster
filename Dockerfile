@@ -2,7 +2,7 @@
 FROM node:21-bookworm-slim
 
 RUN apt-get update && \
-    apt-get install -y libvips libc6 python3 && \
+    apt-get install -y libvips libc6 python3 make gcc && \
     rm -rf /var/lib/apt/lists/*
 
 # corepack 활성화
