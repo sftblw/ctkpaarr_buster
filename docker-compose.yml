@@ -4,7 +4,6 @@ services:
     build: .
     restart: unless-stopped
     volumes:
-      - ./:/app
       - ./model:/app/model
       - ./.env:/app/.env
     ports:
