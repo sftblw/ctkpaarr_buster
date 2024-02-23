@@ -174,8 +174,16 @@ You've reasoned about this message. So, now, decide with a single word response 
         console.log(resultNotes)
         resultNotes.forEach(it => this.handleNote(it))
     }
-
     private async handleNote(note: INote) {
+        try {
+            return await this.handleNoteBody(note);
+        } catch (e) {
+            console.error(e);
+            return new Promise<void>((resolve) => {resolve()});
+        }
+        
+    }
+    private async handleNoteBody(note: INote) {
         const userInfoString = `${note.user.name} ${note.user.username} ${note.user.host}`;
         console.log(`got mention from ${userInfoString}`);
 
