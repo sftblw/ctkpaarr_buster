@@ -1,4 +1,4 @@
-FROM ubuntu:jammy
+FROM debian:bookworm-slim
 
 # 작업 디렉토리를 설정합니다.
 WORKDIR /app
