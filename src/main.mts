@@ -25,7 +25,7 @@ async function main() {
     runner.listen_mention();
     
     console.log("recent mentions")
-    await runner.check_recent_mentions(1);
+    await runner.check_recent_mentions(10);
 }
 
 main();

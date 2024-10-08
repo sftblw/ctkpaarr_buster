@@ -159,12 +159,12 @@ export default class MisskeySpamDetectionRunner {
                     last_success = true;
                     break;
                 } catch (e) {
-                    console.log(`failed to parse ${detector.model} result: ${result}`);
+                    console.log(`(user ${userInfoString}) failed to parse ${detector.model} result: ${result}`);
                 }
             }
             
             if (last_success == false) {
-                console.log(`failed to parse ${detector.model}, out of trying`);
+                console.log(`(user ${userInfoString}) failed to parse ${detector.model}, out of trying`);
                 return;
             }
         }
@@ -173,7 +173,12 @@ export default class MisskeySpamDetectionRunner {
         console.log(`(user ${userInfoString}) acting as a spam`)
         // https://lake.naru.cafe/api/notes/renotes
         // https://legacy.misskey-hub.net/docs/api/endpoints/admin/suspend-user.html
-        // call_mapi_browser_token("/notes/delete", "POST", { noteId: note.id });
-        // call_mapi_browser_token("/admin/suspend_user", "POST", { userId: note.userId });
+        call_mapi_browser_token("/notes/delete", "POST", { noteId: note.id });
+        call_mapi_browser_token("/admin/suspend_user", "POST", { userId: note.userId });
+        call_mapi_browser_token("/notes/create", "POST", 
+            {
+                "text": `[#ctkpaarrbuster] suspended user \`(${userInfoString})\``,
+            }
+        );
     }
 }

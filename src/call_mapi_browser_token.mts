@@ -1,6 +1,6 @@
 export default async function call_mapi_browser_token(endpoint_chunk: string = "/blocking/create", method: string = "POST", body: Record<string, any> = {}): Promise<any> {
     const endpoint = `${process.env.MISSKEY_HOST}/api${endpoint_chunk}`;
-    
+    console.log(`calling ${endpoint}`)
     try {
         const result = await fetch(
             endpoint,
@@ -15,7 +15,7 @@ export default async function call_mapi_browser_token(endpoint_chunk: string = "
         );
 
         if (result.status >= 400) {
-            
+            console.log("error: " + endpoint)
         } else {
             console.log("success: " + endpoint)
         }
